@@ -1,12 +1,15 @@
 // src/components/AdminDashboard.tsx
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Shield, User as UserIcon } from 'lucide-react';
-import { useAdminUsers, useAdminCreateUser, useAdminDeleteUser } from '../lib/hooks';
+import { useAdminUsers, useAdminCreateUser, useAdminDeleteUser, useLogout } from '../lib/hooks';
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const usersQuery = useAdminUsers();
   const createMutation = useAdminCreateUser();
   const deleteMutation = useAdminDeleteUser();
+  const logoutMutation = useLogout();
 
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -49,6 +52,14 @@ export function AdminDashboard() {
     }
   }
 
+  async function onSignOut() {
+    try {
+      await logoutMutation.mutateAsync();
+    } finally {
+      navigate('/signin', { replace: true });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -57,6 +68,12 @@ export function AdminDashboard() {
             <div className="text-2xl font-bold text-gray-900">Admin Dashboard</div>
             <div className="text-sm text-gray-600">Manage users</div>
           </div>
+          <button
+            onClick={onSignOut}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 font-semibold"
+          >
+            Sign out
+          </button>
         </div>
 
         {err && (
