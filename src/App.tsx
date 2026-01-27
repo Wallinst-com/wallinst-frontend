@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
@@ -123,6 +124,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Toaster />
+      <Analytics />
       <Routes>
         {/* Landing */}
         <Route path="/" element={<AutoRedirectHome />} />
