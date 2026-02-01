@@ -192,7 +192,7 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
           </button>
 
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold shrink-0 overflow-hidden">
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0 overflow-hidden">
               {d.avatar ? (
                 <img src={d.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -407,7 +407,7 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
             {firstCommentInteraction?.content && (
               <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-4 border border-gray-200/80">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm">
                     <MessageSquare size={14} className="text-gray-500" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -434,20 +434,31 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
                 <Label htmlFor="dm-message" className="text-sm font-semibold text-gray-800">
                   Your Message
                 </Label>
-                {engager.aiInsights?.privateReplySuggestion && dmMessage !== engager.aiInsights.privateReplySuggestion.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const suggestion = engager.aiInsights?.privateReplySuggestion;
-                      if (suggestion) {
-                        setDmMessage(suggestion.trim());
-                      }
-                    }}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-100"
-                  >
-                    ✨ Use AI Suggestion
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {engager.aiInsights?.privateReplySuggestion && dmMessage !== engager.aiInsights.privateReplySuggestion.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const suggestion = engager.aiInsights?.privateReplySuggestion;
+                        if (suggestion) {
+                          setDmMessage(suggestion.trim());
+                        }
+                      }}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-100"
+                    >
+                      ✨ Use AI
+                    </button>
+                  )}
+                  {dmMessage.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDmMessage('')}
+                      className="text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors px-2.5 py-1 rounded-lg hover:bg-gray-100 border border-transparent"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="relative">
                 <Textarea
@@ -458,6 +469,12 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
                   maxLength={MAX_MESSAGE_LENGTH}
                   rows={5}
                   className="resize-none border-2 border-gray-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm bg-white transition-all placeholder:text-gray-400"
+                />
+              </div>
+              <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 transition-all"
+                  style={{ width: `${Math.min(100, (dmMessage.length / MAX_MESSAGE_LENGTH) * 100)}%` }}
                 />
               </div>
               <div className="flex items-center justify-between text-xs">
@@ -471,6 +488,9 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
                   </span>
                 )}
               </div>
+            </div>
+            <div className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+              Tip: Keep replies concise and personal. Avoid sharing phone or email in public replies.
             </div>
           </div>
 

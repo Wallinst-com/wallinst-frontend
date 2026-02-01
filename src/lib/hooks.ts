@@ -352,6 +352,20 @@ export function usePersonaBreakdown(
 }
 
 // -----------------------------
+// Sent DMs
+// -----------------------------
+export function useSentDMs(
+  params?: { page?: number; limit?: number; platform?: 'instagram' | 'facebook' },
+  options?: QueryOptions
+) {
+  return useQueryLike<any>(
+    ['sent-dms', params ?? {}],
+    async () => api.getSentDMs(params),
+    options
+  );
+}
+
+// -----------------------------
 // Compatibility wrapper used by InstagramCallback.tsx
 // -----------------------------
 export function useInstagram() {

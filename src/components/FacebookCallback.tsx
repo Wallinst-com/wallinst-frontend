@@ -48,6 +48,8 @@ export function FacebookCallback({ onDone, onError }: Props) {
         await completeConnect({ code, state });
         if (cancelled) return;
 
+        window.localStorage.setItem('wallinst-just-connected', 'facebook');
+        window.localStorage.setItem('wallinst-platform', 'facebook');
         setMessage('Connected! Redirecting to dashboard...');
         setTimeout(() => {
           navigate('/dashboard', { replace: true });

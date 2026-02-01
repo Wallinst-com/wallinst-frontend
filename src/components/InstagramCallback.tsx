@@ -50,6 +50,8 @@ export function InstagramCallback({ onDone, onError }: Props) {
         await completeConnect({ code, state });
         if (cancelled) return;
 
+        window.localStorage.setItem('wallinst-just-connected', 'instagram');
+        window.localStorage.setItem('wallinst-platform', 'instagram');
         setMessage('Connected! Redirecting to dashboard...');
         // Use navigate for proper React Router navigation
         setTimeout(() => {

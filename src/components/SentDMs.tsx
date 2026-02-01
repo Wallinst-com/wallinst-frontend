@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { MessageSquare, ArrowLeft, Calendar, FileText, CheckCircle2, Loader2, Clock } from 'lucide-react';
-import api from '../lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useSentDMs } from '../lib/hooks';
 import { toast } from 'sonner';
 import type { InteractionItem } from '../lib/types';
-import { DEFAULT_PAGE_SIZE, QUERY_STALE_TIME, QUERY_RETRY_ATTEMPTS, ERROR_MESSAGES } from '../lib/constants';
+import { DEFAULT_PAGE_SIZE, QUERY_STALE_TIME, ERROR_MESSAGES } from '../lib/constants';
 
 interface SentDMsProps {
   onBack: () => void;
@@ -18,12 +17,10 @@ export function SentDMs({ onBack }: SentDMsProps) {
     return saved === 'facebook' ? 'facebook' : 'instagram';
   });
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['sentDMs', page, platform],
-    queryFn: () => api.getSentDMs({ page, limit: DEFAULT_PAGE_SIZE, platform }),
-    retry: QUERY_RETRY_ATTEMPTS,
-    staleTime: QUERY_STALE_TIME,
-  });
+  const { data, isLoading, error, refetch } = useSentDMs(
+    { page, limit: DEFAULT_PAGE_SIZE, platform },
+    { refetchIntervalMs: QUERY_STALE_TIME }
+  );
 
   const sentDMs = useMemo(
     () => data?.interactions || data?.data?.interactions || [],

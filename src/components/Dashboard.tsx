@@ -87,6 +87,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
     return saved === 'facebook' ? 'facebook' : 'instagram';
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [selectedEngager, setSelectedEngager] = useState<EngagerDetail | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const emptyDashboardData = {
@@ -394,6 +395,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
         refetchIntent(),
         refetchPersona(),
       ]);
+      setLastRefreshedAt(new Date());
       toast.success('Dashboard refreshed');
     } catch (error: any) {
       console.error('Sync failed:', error);
@@ -402,6 +404,38 @@ export function Dashboard({ onSignOut }: DashboardProps) {
       setIsRefreshing(false);
     }
   };
+
+  const refreshQueries = async () => {
+    await Promise.all([
+      refetchEngagers(),
+      refetchKpis(),
+      refetchTrend(),
+      refetchIntent(),
+      refetchPersona(),
+    ]);
+    setLastRefreshedAt(new Date());
+  };
+
+  useEffect(() => {
+    const justConnected = window.localStorage.getItem('wallinst-just-connected');
+    if (!justConnected) return;
+    if (!isPlatformConnected) return;
+    if (justConnected !== platform) return;
+    window.localStorage.removeItem('wallinst-just-connected');
+    void refreshQueries();
+  }, [isPlatformConnected, platform]);
+
+  useEffect(() => {
+    if (!isPlatformConnected) return;
+    if (isRefreshing) return;
+    const intervalMs = 60000;
+    const id = window.setInterval(() => {
+      if (!document.hidden) {
+        void refreshQueries();
+      }
+    }, intervalMs);
+    return () => window.clearInterval(id);
+  }, [isPlatformConnected, isRefreshing, platform]);
 
   const initials =
     (me?.fullName || me?.email || 'U')
@@ -840,13 +874,20 @@ export function Dashboard({ onSignOut }: DashboardProps) {
             </button>
 
             {connectionStatus === 'connected' && (
-              <button
-                onClick={handleSyncNow}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold"
-                disabled={isRefreshing}
-              >
-                {isRefreshing ? 'Refreshing…' : 'Refresh'}
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  onClick={handleSyncNow}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold"
+                  disabled={isRefreshing}
+                >
+                  {isRefreshing ? 'Refreshing…' : 'Refresh'}
+                </button>
+                {lastRefreshedAt && (
+                  <span className="text-xs text-gray-500">
+                    Updated {lastRefreshedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
             )}
 
             {connectionStatus === 'syncing' && isRefreshing && (

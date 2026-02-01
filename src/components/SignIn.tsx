@@ -28,6 +28,10 @@ function decodeJwtPayload(token: string): any | null {
   }
 }
 
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 export function SignIn({ onSignIn, onBack }: SignInProps) {
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
@@ -61,6 +65,10 @@ export function SignIn({ onSignIn, onBack }: SignInProps) {
 
     if (!email || !password) {
       setError('Please enter both email and password');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -165,9 +173,12 @@ export function SignIn({ onSignIn, onBack }: SignInProps) {
                 />
                 <span className="text-sm font-medium text-gray-700">Remember me</span>
               </label>
-              <button type="button" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+              <a
+                href="mailto:contact@wallinst.com?subject=Password%20reset%20request"
+                className="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+              >
                 Forgot password?
-              </button>
+              </a>
             </div>
 
             <button
