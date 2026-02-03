@@ -1,10 +1,11 @@
-import { Rocket, Users, Zap, Lock, ArrowRight } from 'lucide-react';
+import React from 'react';
+import { BadgeCheck, Users, Zap, Lock, ArrowRight } from 'lucide-react';
 
 const benefits = [
   {
-    icon: Rocket,
-    title: "3 Months Free Access",
-    description: "Full access to all enterprise features during the pilot program at no cost",
+    icon: BadgeCheck,
+    title: "60 Days Money-Back Guarantee",
+    description: "Try Wallinst risk-free — if it’s not a fit, get a full refund within 60 days",
   },
   {
     icon: Users,
@@ -40,7 +41,7 @@ export function SocialProof({ onRequestAccess }: SocialProofProps) {
             Join the Wallinst Pilot
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Only <span className="font-bold text-gray-900">25 companies</span> will be accepted for Q1 2026. Be among the first to turn engagement into qualified leads with AI.
+            Limited availability for Q1 2026. Be among the first to turn engagement into qualified leads with AI.
           </p>
         </div>
 
@@ -76,7 +77,7 @@ export function SocialProof({ onRequestAccess }: SocialProofProps) {
             Request Early Access
             <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
           </button>
-          <p className="text-sm text-gray-500 font-medium">Applications close when all 25 spots are filled</p>
+          <p className="text-sm text-gray-500 font-medium">Applications close when capacity is reached</p>
         </div>
       </div>
     </section>

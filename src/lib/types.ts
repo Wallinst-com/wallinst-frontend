@@ -346,7 +346,6 @@ export type SyncStatus = 'queued' | 'processing' | 'completed' | 'failed';
 
 export interface InstagramAuthUrlResponse {
   authUrl: string;
-  state: string;
 }
 
 export interface InstagramConnectRequest {
@@ -356,7 +355,6 @@ export interface InstagramConnectRequest {
 
 export interface FacebookAuthUrlResponse {
   authUrl: string;
-  state: string;
 }
 
 export interface FacebookConnectRequest {

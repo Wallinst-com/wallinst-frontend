@@ -1,27 +1,15 @@
 // src/components/InstagramCallback.tsx
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useInstagram } from '../lib/hooks';
 
 type Props = {
   onDone: () => void;
   onError?: () => void;
 };
 
-function readParamsOnce() {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    code: params.get('code') || '',
-    state: params.get('state') || '',
-    error: params.get('error') || '',
-    errorDescription: params.get('error_description') || '',
-  };
-}
-
 export function InstagramCallback({ onDone, onError }: Props) {
   const navigate = useNavigate();
-  const { completeConnect } = useInstagram();
-  const [message, setMessage] = useState('Connecting your Instagram account...');
+  const [message, setMessage] = useState('Redirecting to dashboard...');
 
   // Prevent double-run in React 18 dev (StrictMode) + rerenders
   const startedRef = useRef(false);
@@ -34,45 +22,28 @@ export function InstagramCallback({ onDone, onError }: Props) {
 
     (async () => {
       try {
-        const { code, state, error, errorDescription } = readParamsOnce();
-
-        // Immediately remove sensitive params from URL to prevent re-trigger loops
+        // This route is no longer used as an OAuth redirect target.
+        // OAuth callback now lands on the backend for security.
         window.history.replaceState({}, '', window.location.pathname);
-
-        if (error) {
-          throw new Error(errorDescription || error);
-        }
-
-        if (!code || !state) {
-          throw new Error('Missing OAuth parameters. Please try connecting again.');
-        }
-
-        await completeConnect({ code, state });
         if (cancelled) return;
-
-        window.localStorage.setItem('wallinst-just-connected', 'instagram');
-        window.localStorage.setItem('wallinst-platform', 'instagram');
-        setMessage('Connected! Redirecting to dashboard...');
-        // Use navigate for proper React Router navigation
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
           onDone();
-        }, 1000);
+        }, 0);
       } catch (e: any) {
         if (cancelled) return;
-        setMessage(e?.message || 'Failed to connect Instagram. Please try again.');
-        // Still redirect to dashboard so user can retry
+        setMessage(e?.message || 'Redirecting to dashboard...');
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
           onError?.();
-        }, 2000);
+        }, 0);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [completeConnect, navigate, onDone, onError]);
+  }, [navigate, onDone, onError]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">

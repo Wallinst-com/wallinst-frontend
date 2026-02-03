@@ -138,6 +138,22 @@ export function Dashboard({ onSignOut }: DashboardProps) {
 
   // Refetch Instagram connection on mount to ensure we have latest status after redirect
   useEffect(() => {
+    // If redirected back from backend OAuth callback, translate query params into existing "just connected" behavior.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const connected = params.get('connected');
+      const status = params.get('status');
+      if ((connected === 'instagram' || connected === 'facebook') && status === 'success') {
+        window.localStorage.setItem('wallinst-just-connected', connected);
+        window.localStorage.setItem('wallinst-platform', connected);
+        setPlatform(connected);
+        // Remove non-sensitive params from URL (prevents repeat on refresh)
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch {
+      // ignore
+    }
+
     // Refetch immediately on mount
     refetchInstagramConnection();
     refetchFacebookConnection();

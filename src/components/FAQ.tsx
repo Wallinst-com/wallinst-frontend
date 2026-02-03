@@ -28,7 +28,7 @@ const faqs = [
   },
   {
     question: "What are the pilot program benefits?",
-    answer: "Pilot participants receive 3 months of free access, unlimited AI features, dedicated onboarding support, priority feature requests, and grandfathered pricing when we launch publicly. Only 25 spots available for Q1 2026.",
+    answer: "Pilot participants receive a 60-day money-back guarantee, unlimited AI features, dedicated onboarding support, priority feature requests, and grandfathered pricing when we launch publicly. Limited availability for Q1 2026.",
   },
   {
     question: "What kind of support do you provide?",

@@ -98,7 +98,7 @@ export const api = {
 
   // ---------- Instagram ----------
   getInstagramAuthUrl: (): Promise<InstagramAuthUrlResponse> => {
-    return apiClient.get<InstagramAuthUrlResponse>('/instagram/auth-url');
+    return apiClient.get<InstagramAuthUrlResponse>('/oauth/instagram/start');
   },
 
   connectInstagram: (code: string, state: string): Promise<InstagramConnectionResponse> => {
@@ -115,7 +115,7 @@ export const api = {
 
   // ---------- Facebook ----------
   getFacebookAuthUrl: (): Promise<FacebookAuthUrlResponse> => {
-    return apiClient.get<FacebookAuthUrlResponse>('/facebook/auth-url');
+    return apiClient.get<FacebookAuthUrlResponse>('/oauth/facebook/start');
   },
 
   connectFacebook: (code: string, state: string, pageId?: string | null): Promise<FacebookConnectionResponse> => {

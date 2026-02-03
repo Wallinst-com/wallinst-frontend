@@ -1,27 +1,15 @@
 // src/components/FacebookCallback.tsx
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFacebook } from '../lib/hooks';
 
 type Props = {
   onDone: () => void;
   onError?: () => void;
 };
 
-function readParamsOnce() {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    code: params.get('code') || '',
-    state: params.get('state') || '',
-    error: params.get('error') || '',
-    errorDescription: params.get('error_description') || '',
-  };
-}
-
 export function FacebookCallback({ onDone, onError }: Props) {
   const navigate = useNavigate();
-  const { completeConnect } = useFacebook();
-  const [message, setMessage] = useState('Connecting your Facebook Page...');
+  const [message, setMessage] = useState('Redirecting to dashboard...');
 
   const startedRef = useRef(false);
 
@@ -33,42 +21,28 @@ export function FacebookCallback({ onDone, onError }: Props) {
 
     (async () => {
       try {
-        const { code, state, error, errorDescription } = readParamsOnce();
-
         window.history.replaceState({}, '', window.location.pathname);
-
-        if (error) {
-          throw new Error(errorDescription || error);
-        }
-
-        if (!code || !state) {
-          throw new Error('Missing OAuth parameters. Please try connecting again.');
-        }
-
-        await completeConnect({ code, state });
         if (cancelled) return;
-
-        window.localStorage.setItem('wallinst-just-connected', 'facebook');
-        window.localStorage.setItem('wallinst-platform', 'facebook');
-        setMessage('Connected! Redirecting to dashboard...');
+        // This route is no longer used as an OAuth redirect target.
+        // OAuth callback now lands on the backend for security.
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
           onDone();
-        }, 1000);
+        }, 0);
       } catch (e: any) {
         if (cancelled) return;
-        setMessage(e?.message || 'Failed to connect Facebook. Please try again.');
+        setMessage(e?.message || 'Redirecting to dashboard...');
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
           onError?.();
-        }, 2000);
+        }, 0);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [completeConnect, navigate, onDone, onError]);
+  }, [navigate, onDone, onError]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">

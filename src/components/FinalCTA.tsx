@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sparkles, CheckCircle2, BadgeCheck } from 'lucide-react';
 
 interface FinalCTAProps {
   onRequestAccess: () => void;
@@ -17,7 +17,7 @@ export function FinalCTA({ onRequestAccess }: FinalCTAProps) {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/20 border-2 border-white/30 backdrop-blur-sm mb-8">
               <Sparkles className="text-white" size={18} />
-              <span className="text-sm font-bold text-white">Limited to 25 Companies</span>
+              <span className="text-sm font-bold text-white">Limited Availability</span>
             </div>
 
             {/* Headline */}
@@ -45,10 +45,10 @@ export function FinalCTA({ onRequestAccess }: FinalCTAProps) {
             <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300">
                 <div className="flex items-start gap-4">
-                  <CheckCircle2 className="text-green-300 flex-shrink-0 mt-1" size={26} />
+                  <BadgeCheck className="text-green-300 flex-shrink-0 mt-1" size={26} />
                   <div className="text-left">
-                    <div className="text-white font-bold mb-2 text-lg">3 Months Free</div>
-                    <div className="text-sm text-indigo-100">Full enterprise access</div>
+                    <div className="text-white font-bold mb-2 text-lg">60-Day Guarantee</div>
+                    <div className="text-sm text-indigo-100">Money-back, risk-free trial</div>
                   </div>
                 </div>
               </div>

@@ -244,7 +244,7 @@ export function useFacebookConnection(options?: QueryOptions) {
 }
 
 export function useInstagramAuthUrl(options?: QueryOptions & { enabled?: boolean }) {
-  return useQueryLike<{ authUrl: string; state: string }>(
+  return useQueryLike<{ authUrl: string }>(
     ['ig-auth-url'],
     () => api.getInstagramAuthUrl(),
     { enabled: options?.enabled ?? true }
@@ -252,7 +252,7 @@ export function useInstagramAuthUrl(options?: QueryOptions & { enabled?: boolean
 }
 
 export function useFacebookAuthUrl(options?: QueryOptions & { enabled?: boolean }) {
-  return useQueryLike<{ authUrl: string; state: string }>(
+  return useQueryLike<{ authUrl: string }>(
     ['fb-auth-url'],
     () => api.getFacebookAuthUrl(),
     { enabled: options?.enabled ?? true }
@@ -377,8 +377,7 @@ export function useInstagram() {
   const connect = useCallback(async () => {
     const r = await authUrlQuery.refetch();
     const authUrl = (r.data as any)?.authUrl;
-    const state = (r.data as any)?.state;
-    return { authUrl, state };
+    return { authUrl };
   }, [authUrlQuery]);
 
   const completeConnect = useCallback(
@@ -418,8 +417,7 @@ export function useFacebook() {
   const connect = useCallback(async () => {
     const r = await authUrlQuery.refetch();
     const authUrl = (r.data as any)?.authUrl;
-    const state = (r.data as any)?.state;
-    return { authUrl, state };
+    return { authUrl };
   }, [authUrlQuery]);
 
   const completeConnect = useCallback(

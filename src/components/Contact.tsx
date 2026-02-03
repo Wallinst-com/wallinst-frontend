@@ -1,4 +1,4 @@
-import { Mail, MessageSquare, Calendar, ArrowRight } from 'lucide-react';
+import { Mail, MessageSquare, BadgeCheck, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 
 type ContactFormData = {
@@ -68,7 +68,7 @@ export function Contact() {
                 Get Early Access to Wallinst
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed">
-                Be among the first 25 businesses to turn social engagement into qualified leads using AI.
+                Limited availability — be among the first businesses to turn social engagement into qualified leads using AI.
               </p>
             </div>
 
@@ -76,11 +76,11 @@ export function Contact() {
             <div className="space-y-4">
               <div className="flex items-start gap-4 bg-white p-6 rounded-2xl border-2 border-gray-100 hover:border-indigo-200 hover:shadow-xl transition-all duration-300">
                 <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                  <Calendar className="text-white" size={24} />
+                  <BadgeCheck className="text-white" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1 text-lg">3 Months Free Access</h3>
-                  <p className="text-sm text-gray-600">Full access to all enterprise features</p>
+                  <h3 className="font-bold text-gray-900 mb-1 text-lg">60 Days Money-Back Guarantee</h3>
+                  <p className="text-sm text-gray-600">Try Wallinst risk-free</p>
                 </div>
               </div>
 
@@ -108,7 +108,7 @@ export function Contact() {
             {/* Urgency */}
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-100 rounded-2xl p-6">
               <p className="text-sm font-bold text-indigo-900">
-                ⚡ Only 25 pilot spots available for Q1 2026
+                ⚡ Limited availability for Q1 2026
               </p>
             </div>
           </div>
