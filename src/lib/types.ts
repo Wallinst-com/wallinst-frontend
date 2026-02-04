@@ -202,7 +202,7 @@ export interface ActivityFeedResponse {
 export type EngagementQuality = 'High' | 'Medium' | 'Low';
 export type RecommendedAction = 
   | 'Send DM' 
-  | 'Reply Publicly' 
+  | 'Send Private Reply' 
   | 'Ask Qualification Question' 
   | 'Offer Demo' 
   | 'Share Pricing' 
