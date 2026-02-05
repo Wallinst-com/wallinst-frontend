@@ -13,7 +13,8 @@ import {
   Instagram,
   Save,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import { useUser, useInstagramConnection, useFacebookConnection } from '../lib/hooks';
 import { api } from '../lib/api';
@@ -46,6 +47,7 @@ export function Settings({
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Load user data from API
   const { user: currentUser, isLoading: userLoading, updateUser } = useUser();
@@ -565,6 +567,38 @@ export function Settings({
                   <p className="text-sm text-gray-600 mb-4">Add an extra layer of security to your account</p>
                   <button className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-bold hover:shadow-lg transition-all">
                     Enable 2FA
+                  </button>
+                </div>
+
+                <div className="bg-red-50 rounded-xl border-2 border-red-200 p-6">
+                  <h4 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
+                    <Trash2 size={20} className="text-red-600" />
+                    Delete account
+                  </h4>
+                  <p className="text-sm text-gray-700 mb-4">
+                    Permanently delete your account and all associated data (including Instagram and Facebook data we have stored). This cannot be undone.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm('Are you sure? This will permanently delete your account and all your data. This action cannot be undone.')) return;
+                      setIsDeletingAccount(true);
+                      setError(null);
+                      try {
+                        await api.deleteMyAccount();
+                        await api.logout();
+                        onClose();
+                        window.location.href = '/signin';
+                      } catch (e: unknown) {
+                        const msg = handleApiError(e);
+                        setError(msg || 'Failed to delete account');
+                      } finally {
+                        setIsDeletingAccount(false);
+                      }
+                    }}
+                    disabled={isDeletingAccount}
+                    className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all disabled:opacity-50"
+                  >
+                    {isDeletingAccount ? 'Deleting...' : 'Delete my account'}
                   </button>
                 </div>
               </div>

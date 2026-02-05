@@ -96,6 +96,10 @@ export const api = {
     return apiClient.post<{ message: string }>('/users/me/change-password', data);
   },
 
+  deleteMyAccount: (): Promise<void> => {
+    return apiClient.delete<void>('/auth/me/account');
+  },
+
   // ---------- Instagram ----------
   getInstagramAuthUrl: (): Promise<InstagramAuthUrlResponse> => {
     return apiClient.get<InstagramAuthUrlResponse>('/oauth/instagram/start');

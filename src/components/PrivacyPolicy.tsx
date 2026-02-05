@@ -34,10 +34,10 @@ export default function PrivacyPolicy() {
               details provided during registration.
             </li>
             <li>
-              <strong>Instagram Data (via Meta Graph API):</strong> Public Instagram
-              profile information, usernames, post comments, engagement metadata,
-              and interaction timestamps related to Instagram accounts connected by
-              the user.
+              <strong>Instagram &amp; Facebook Data (via Meta Graph API):</strong> Public
+              Instagram and Facebook Page profile information, usernames, post
+              comments, engagement metadata, and interaction timestamps related to
+              Instagram accounts or Facebook Pages connected by the user.
             </li>
             <li>
               <strong>Engagement Data:</strong> Comments, interaction frequency,
@@ -63,9 +63,9 @@ export default function PrivacyPolicy() {
   
           <ul className="list-disc pl-6 text-gray-700 space-y-2">
             <li>Provide and operate the Wallinst platform.</li>
-            <li>Analyze Instagram engagement and detect lead intent.</li>
+            <li>Analyze Instagram and Facebook Page engagement and detect lead intent.</li>
             <li>Generate AI-powered insights and scoring for business users.</li>
-            <li>Display engagement analytics related to the user’s own Instagram account.</li>
+            <li>Display engagement analytics related to the user’s own Instagram account and Facebook Page.</li>
             <li>Improve platform security, reliability, and performance.</li>
           </ul>
   
@@ -78,18 +78,18 @@ export default function PrivacyPolicy() {
   
           <p className="text-gray-700 mb-4">
             Wallinst uses the Meta Graph API in compliance with Meta’s Platform
-            Policies. We only access Instagram data explicitly authorized by the
-            connected user.
+            Policies. We only access Instagram and Facebook Page data explicitly
+            authorized by the connected user.
           </p>
   
           <p className="text-gray-700 mb-4">
-            Instagram data is:
+            Instagram and Facebook Page data is:
           </p>
   
           <ul className="list-disc pl-6 text-gray-700 space-y-2">
-            <li>Used solely to analyze engagement on the user’s own Instagram account.</li>
+            <li>Used solely to analyze engagement on the user’s own Instagram account or Facebook Page.</li>
             <li>Never sold, shared, or used for advertising.</li>
-            <li>Never accessed for accounts not explicitly connected by the user.</li>
+            <li>Never accessed for accounts or Pages not explicitly connected by the user.</li>
           </ul>
   
           {/* ===================== */}
@@ -100,9 +100,10 @@ export default function PrivacyPolicy() {
           </h2>
   
           <p className="text-gray-700 mb-4">
-            Wallinst uses artificial intelligence to analyze Instagram comments and
-            interactions. This analysis is used to infer engagement quality and
-            potential purchase intent.
+            Wallinst uses artificial intelligence to analyze Instagram and Facebook
+            comments and interactions. This analysis is performed with the help of
+            third-party AI service providers (e.g. for natural language processing).
+            It is used to infer engagement quality and potential purchase intent.
           </p>
   
           <p className="text-gray-700 mb-4">
@@ -144,7 +145,7 @@ export default function PrivacyPolicy() {
   
           <ul className="list-disc pl-6 text-gray-700 space-y-2">
             <li>When required by law or legal process.</li>
-            <li>With infrastructure providers strictly necessary to operate the service.</li>
+            <li>With infrastructure and service providers strictly necessary to operate the service (e.g. cloud hosting, AI analysis providers). These providers process data only on our instructions and do not use it for their own purposes.</li>
           </ul>
   
           {/* ===================== */}
@@ -159,8 +160,8 @@ export default function PrivacyPolicy() {
           </p>
   
           <ul className="list-disc pl-6 text-gray-700 space-y-2">
-            <li>Disconnect your Instagram account at any time.</li>
-            <li>Request access to or deletion of your data.</li>
+            <li>Disconnect your Instagram or Facebook Page account at any time.</li>
+            <li>Request access to or deletion of your data, or delete your entire account and all associated data from within Settings.</li>
             <li>Stop using the service at any time.</li>
           </ul>
   
@@ -172,9 +173,10 @@ export default function PrivacyPolicy() {
           </h2>
   
           <p className="text-gray-700 mb-4">
-            If you disconnect your Instagram account or request deletion, all
-            associated Instagram data will be permanently deleted from our systems
-            within a reasonable timeframe unless retention is required by law.
+            If you disconnect your Instagram or Facebook Page account, or delete your
+            Wallinst account, all associated data (including Instagram and Facebook
+            data we have stored) will be permanently deleted from our systems within a
+            reasonable timeframe unless retention is required by law.
           </p>
   
           {/* ===================== */}
