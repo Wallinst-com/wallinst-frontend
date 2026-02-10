@@ -1,10 +1,8 @@
 import React, { type ComponentType, useState, useMemo, useCallback } from 'react';
-import { X, TrendingUp, Activity, Target, ThumbsUp, User, Send, Loader2, MessageSquare } from 'lucide-react';
+import { X, TrendingUp, Activity, Target, ThumbsUp, User, Send, Loader2 } from 'lucide-react';
 import type { EngagerDetail } from '../lib/mappers/engager-detail-mapper';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
+import { SendDMDialog } from './SendDMDialog';
 import api from '../lib/api';
 import { toast } from 'sonner';
 import { MAX_MESSAGE_LENGTH, MESSAGE_WARNING_THRESHOLD, ERROR_MESSAGES, SUCCESS_MESSAGES, VALIDATION_MESSAGES } from '../lib/constants';
@@ -148,7 +146,7 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsSendingDM(false);
@@ -178,8 +176,8 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
         aria-hidden="true"
         style={{ display: 'block' }}
       />
-      <div 
-        className="fixed right-0 top-0 h-full w-full md:w-[600px] bg-white shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300" 
+      <div
+        className="fixed right-0 top-0 h-full w-full md:w-[600px] bg-white shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300"
         style={{ display: 'block', visibility: 'visible', opacity: 1 }}
       >
         <div className="sticky top-0 bg-white border-b-2 border-gray-200 p-6 z-10">
@@ -347,11 +345,6 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
                   return;
                 }
                 setShowDMDialog(true);
-                // Pre-fill with AI suggestion from backend
-                const aiSuggestion = engager.aiInsights?.privateReplySuggestion;
-                if (aiSuggestion && typeof aiSuggestion === 'string' && aiSuggestion.trim()) {
-                  setDmMessage(aiSuggestion.trim());
-                }
               }}
               disabled={!firstCommentInteraction}
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -374,159 +367,15 @@ export function UserDetailDrawer({ engager, onClose, platform = 'instagram' }: U
         </div>
       </div>
 
-      {/* Send DM Dialog - Professional Design */}
-      <Dialog open={showDMDialog} onOpenChange={(open) => {
-        setShowDMDialog(open);
-      }}>
-        <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
-          {/* Header with gradient accent */}
-          <div className="relative">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-            <div className="px-6 pt-6 pb-4">
-              <DialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                    <Send size={18} className="text-white" />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-lg font-semibold text-gray-900">
-                      {platform === 'facebook' ? 'Reply to Comment' : 'Send Direct Message'}
-                    </DialogTitle>
-                    <DialogDescription className="text-sm text-gray-500 mt-0.5">
-                      to <span className="font-medium text-indigo-600">@{engager.username}</span>
-                    </DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-            </div>
-          </div>
-          
-          {/* Content */}
-          <div className="px-6 pb-4 space-y-4">
-            {/* Original Comment - Compact Card */}
-            {firstCommentInteraction?.content && (
-              <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-4 border border-gray-200/80">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <MessageSquare size={14} className="text-gray-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Their Comment</p>
-                    <p className="text-sm text-gray-800 leading-relaxed italic">"{firstCommentInteraction.content}"</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* AI Badge - Only if using AI suggestion */}
-            {engager.aiInsights?.privateReplySuggestion && dmMessage === engager.aiInsights.privateReplySuggestion.trim() && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-100">
-                <div className="w-5 h-5 rounded-md bg-indigo-600 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-white">AI</span>
-                </div>
-                <span className="text-xs font-medium text-indigo-700">Using AI-generated suggestion</span>
-              </div>
-            )}
-
-            {/* Message Input */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="dm-message" className="text-sm font-semibold text-gray-800">
-                  Your Message
-                </Label>
-                <div className="flex items-center gap-2">
-                  {engager.aiInsights?.privateReplySuggestion && dmMessage !== engager.aiInsights.privateReplySuggestion.trim() && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const suggestion = engager.aiInsights?.privateReplySuggestion;
-                        if (suggestion) {
-                          setDmMessage(suggestion.trim());
-                        }
-                      }}
-                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-100"
-                    >
-                      ✨ Use AI
-                    </button>
-                  )}
-                  {dmMessage.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setDmMessage('')}
-                      className="text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors px-2.5 py-1 rounded-lg hover:bg-gray-100 border border-transparent"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="relative">
-                <Textarea
-                  id="dm-message"
-                  placeholder="Write a personalized, engaging message..."
-                  value={dmMessage}
-                  onChange={(e) => setDmMessage(e.target.value)}
-                  maxLength={MAX_MESSAGE_LENGTH}
-                  rows={5}
-                  className="resize-none border-2 border-gray-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm bg-white transition-all placeholder:text-gray-400"
-                />
-              </div>
-              <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-indigo-500 transition-all"
-                  style={{ width: `${Math.min(100, (dmMessage.length / MAX_MESSAGE_LENGTH) * 100)}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500">
-                  <span className={dmMessage.length > 0 ? "font-semibold text-gray-700" : ""}>{dmMessage.length}</span>
-                  <span className="text-gray-400"> / {MAX_MESSAGE_LENGTH}</span>
-                </span>
-                {dmMessage.length > MESSAGE_WARNING_THRESHOLD && (
-                  <span className="font-semibold text-amber-600">
-                    {MAX_MESSAGE_LENGTH - dmMessage.length} left
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-              Tip: Keep replies concise and personal. Avoid sharing phone or email in public replies.
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setShowDMDialog(false);
-                setDmMessage('');
-              }}
-              disabled={isSendingDM}
-              className="font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 px-5"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSendDM}
-              disabled={isSendingDM || !dmMessage.trim()}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold px-6 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {isSendingDM ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Message
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SendDMDialog
+        isOpen={showDMDialog}
+        onClose={() => setShowDMDialog(false)}
+        engager={engager}
+        platform={platform}
+        interactionId={firstCommentInteraction?.id}
+        originalComment={firstCommentInteraction?.content}
+        aiSuggestion={typeof engager.aiInsights?.privateReplySuggestion === 'string' ? engager.aiInsights.privateReplySuggestion : null}
+      />
     </>
   );
 }
