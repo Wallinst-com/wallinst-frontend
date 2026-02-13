@@ -449,16 +449,22 @@ export function Dashboard({ onSignOut }: DashboardProps) {
   // State to enforce minimum 30s analyzing animation
   const [isAnalyzingMinTime, setIsAnalyzingMinTime] = useState(false);
 
+  const loadingAny = (engagersLoading || kpisLoading || (platform === 'facebook' ? facebookLoading : instagramLoading)) && isPlatformConnected;
+
   // Manage analyzing state min duration
   useEffect(() => {
-    if (isPlatformConnected && Number(kpiCards.totalEngagers.value) === 0) {
+    // Only trigger if:
+    // 1. Connected
+    // 2. We are NOT currently loading data (so we know for sure 0 results is real)
+    // 3. We genuinely have 0 engagers
+    if (isPlatformConnected && !loadingAny && Number(kpiCards.totalEngagers.value) === 0) {
       setIsAnalyzingMinTime(true);
       const timer = setTimeout(() => {
         setIsAnalyzingMinTime(false);
       }, 30000); // Enforce 30s minimum
       return () => clearTimeout(timer);
     }
-  }, [isPlatformConnected, kpiCards.totalEngagers.value]);
+  }, [isPlatformConnected, loadingAny, kpiCards.totalEngagers.value]);
 
   useEffect(() => {
     if (!isPlatformConnected) return;
@@ -485,7 +491,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
       .map((s: string) => s[0]?.toUpperCase())
       .join('') || 'U';
 
-  const loadingAny = (engagersLoading || kpisLoading || (platform === 'facebook' ? facebookLoading : instagramLoading)) && isPlatformConnected;
+
 
   // Show analyzing overlay if we have 0 users OR we are enforcing the minimum 30s wait
   const showAnalyzingOverlay = isPlatformConnected && !loadingAny && (Number(kpiCards.totalEngagers.value) === 0 || isAnalyzingMinTime);
