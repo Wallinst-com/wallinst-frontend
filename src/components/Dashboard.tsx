@@ -446,13 +446,28 @@ export function Dashboard({ onSignOut }: DashboardProps) {
     void refreshQueries();
   }, [isPlatformConnected, platform]);
 
+  // State to enforce minimum 30s analyzing animation
+  const [isAnalyzingMinTime, setIsAnalyzingMinTime] = useState(false);
+
+  // Manage analyzing state min duration
+  useEffect(() => {
+    if (isPlatformConnected && Number(kpiCards.totalEngagers.value) === 0) {
+      setIsAnalyzingMinTime(true);
+      const timer = setTimeout(() => {
+        setIsAnalyzingMinTime(false);
+      }, 30000); // Enforce 30s minimum
+      return () => clearTimeout(timer);
+    }
+  }, [isPlatformConnected, kpiCards.totalEngagers.value]);
+
   useEffect(() => {
     if (!isPlatformConnected) return;
     if (isRefreshing) return;
 
-    // Poll faster (5s) if we are in "Analyzing" state (connected but 0 users), otherwise 60s
+    // Poll faster (5s) if we are in "Analyzing" state (connected but 0 users), 
+    // otherwise 5 minutes (300,000ms) to reduce server load
     const isAnalyzing = Number(kpiCards.totalEngagers.value) === 0;
-    const intervalMs = isAnalyzing ? 5000 : 60000;
+    const intervalMs = isAnalyzing ? 5000 : 300000;
 
     const id = window.setInterval(() => {
       if (!document.hidden) {
@@ -471,6 +486,9 @@ export function Dashboard({ onSignOut }: DashboardProps) {
       .join('') || 'U';
 
   const loadingAny = (engagersLoading || kpisLoading || (platform === 'facebook' ? facebookLoading : instagramLoading)) && isPlatformConnected;
+
+  // Show analyzing overlay if we have 0 users OR we are enforcing the minimum 30s wait
+  const showAnalyzingOverlay = isPlatformConnected && !loadingAny && (Number(kpiCards.totalEngagers.value) === 0 || isAnalyzingMinTime);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -594,7 +612,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                 ) : (
                   <>
                     {/* Analyzing / Syncing State Overlay */}
-                    {isPlatformConnected && Number(kpiCards.totalEngagers.value) === 0 && !loadingAny && (
+                    {showAnalyzingOverlay && (
                       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm rounded-xl border border-dashed border-indigo-200 p-8 text-center animate-in fade-in duration-500">
                         <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative">
                           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
