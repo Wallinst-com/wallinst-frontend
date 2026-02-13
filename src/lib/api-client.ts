@@ -3,11 +3,14 @@
  * Adapted from guidelines for Vite (using import.meta.env instead of process.env)
  */
 
+import {
+  ApiErrorCode,
+} from './types';
+
 import type {
   ApiResponse,
   ErrorResponse,
   SuccessResponse,
-  ApiErrorCode,
 } from './types';
 
 export class ApiError extends Error {
@@ -128,16 +131,28 @@ export class ApiClient {
     if (response.status === 401 && this.refreshToken && !options.skipAuth) {
       try {
         const newAccessToken = await this.refreshAccessToken();
-        headers['Authorization'] = `Bearer ${newAccessToken}`;
+        // @ts-ignore
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
         response = await fetch(url, {
           ...options,
           headers,
         });
       } catch (refreshError) {
-        // Refresh failed, clear tokens
+        // Refresh failed, clear tokens and force login
         this.setTokens(null, null);
+        window.localStorage.removeItem('wallinst_access_token');
+        window.localStorage.removeItem('wallinst_refresh_token');
+        window.localStorage.removeItem('wallinst_user');
+        window.location.href = '/u/signin';
         throw refreshError;
       }
+    } else if (response.status === 401 && !options.skipAuth) {
+      // No refresh token but we got a 401 - force login
+      this.setTokens(null, null);
+      window.localStorage.removeItem('wallinst_access_token');
+      window.localStorage.removeItem('wallinst_refresh_token');
+      window.localStorage.removeItem('wallinst_user');
+      window.location.href = '/u/signin';
     }
 
     // Handle non-JSON responses (like CORS errors)
@@ -257,7 +272,7 @@ export class ApiClient {
 }
 
 // Singleton instance - adapted for Vite
-const API_BASE_URL = 
+const API_BASE_URL =
   (import.meta.env?.VITE_API_URL?.replace(/\/$/, '') || 'http://localhost:8000') + '/api';
 
 export const apiClient = new ApiClient(API_BASE_URL);

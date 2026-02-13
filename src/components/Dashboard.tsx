@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Activity,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import {
   LineChart,
@@ -92,12 +93,12 @@ export function Dashboard({ onSignOut }: DashboardProps) {
   const [showSettings, setShowSettings] = useState(false);
   const emptyDashboardData = {
     kpiCards: {
-      totalEngagers: { value: '0' },
-      highIntentPct: { value: '0%' },
-      leads: { value: '0' },
-      dms: { value: '0' },
-      avgScore: { value: '0' },
-      confidence: { value: '0%' },
+      totalEngagers: { value: '0', spark: [] },
+      highIntentPct: { value: '0%', spark: [] },
+      leads: { value: '0', spark: [] },
+      dms: { value: '0', spark: [] },
+      avgScore: { value: '0', spark: [] },
+      confidence: { value: '0%', spark: [] },
     },
     kpiChanges: {
       totalEngagers: null,
@@ -111,7 +112,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
     intentDistributionData: [],
     personaBreakdownData: [],
     displayEngagers: [],
-  };
+  } as any;
 
   const lastGoodDataRef = useRef<{
     instagram: typeof emptyDashboardData;
@@ -157,7 +158,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
     // Refetch immediately on mount
     refetchInstagramConnection();
     refetchFacebookConnection();
-    
+
     // Also refetch after a short delay to catch any async updates from redirect
     const timer = setTimeout(() => {
       refetchInstagramConnection();
@@ -321,14 +322,14 @@ export function Dashboard({ onSignOut }: DashboardProps) {
         },
         row
       );
-      
+
       // Ensure we have at least basic data before opening drawer
       if (!optimisticData || !optimisticData.username) {
         console.error('Invalid engager data', row);
         toast.error('Invalid engager data. Please try again.');
         return;
       }
-      
+
       setSelectedEngager(optimisticData);
 
       // real backend fetch
@@ -354,10 +355,10 @@ export function Dashboard({ onSignOut }: DashboardProps) {
   const handleInstagramConnect = async () => {
     try {
       const r = await authUrlQuery.refetch();
-  
+
       // r = { data?: {authUrl,state} , error?: unknown }
       const authUrl = (r.data as any)?.authUrl;
-  
+
       if (!authUrl) {
         const msg =
           (r as any)?.error?.message ||
@@ -366,7 +367,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
         toast.error(msg);
         return;
       }
-  
+
       window.location.href = authUrl;
     } catch (e: any) {
       console.error('Instagram connect error:', e);
@@ -444,14 +445,18 @@ export function Dashboard({ onSignOut }: DashboardProps) {
   useEffect(() => {
     if (!isPlatformConnected) return;
     if (isRefreshing) return;
-    const intervalMs = 60000;
+
+    // Poll faster (5s) if we are in "Analyzing" state (connected but 0 users), otherwise 60s
+    const isAnalyzing = Number(kpiCards.totalEngagers.value) === 0;
+    const intervalMs = isAnalyzing ? 5000 : 60000;
+
     const id = window.setInterval(() => {
       if (!document.hidden) {
         void refreshQueries();
       }
     }, intervalMs);
     return () => window.clearInterval(id);
-  }, [isPlatformConnected, isRefreshing, platform]);
+  }, [isPlatformConnected, isRefreshing, platform, kpiCards.totalEngagers.value]);
 
   const initials =
     (me?.fullName || me?.email || 'U')
@@ -488,9 +493,8 @@ export function Dashboard({ onSignOut }: DashboardProps) {
 
               <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-300">
                 <div
-                  className={`w-2 h-2 rounded-full ${getStatusColor(connectionStatus)} ${
-                    connectionStatus === 'syncing' ? 'animate-pulse' : ''
-                  }`}
+                  className={`w-2 h-2 rounded-full ${getStatusColor(connectionStatus)} ${connectionStatus === 'syncing' ? 'animate-pulse' : ''
+                    }`}
                 />
                 <span className="text-sm font-semibold text-gray-700">{getStatusText(connectionStatus)}</span>
               </div>
@@ -556,11 +560,10 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                     setPlatform('instagram');
                     window.localStorage.setItem('wallinst-platform', 'instagram');
                   }}
-                  className={`px-4 py-2 text-sm font-semibold ${
-                    platform === 'instagram'
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`px-4 py-2 text-sm font-semibold ${platform === 'instagram'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                 >
                   Instagram
                 </button>
@@ -569,11 +572,10 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                     setPlatform('facebook');
                     window.localStorage.setItem('wallinst-platform', 'facebook');
                   }}
-                  className={`px-4 py-2 text-sm font-semibold ${
-                    platform === 'facebook'
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`px-4 py-2 text-sm font-semibold ${platform === 'facebook'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                 >
                   Facebook
                 </button>
@@ -586,55 +588,79 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                 {loadingAny && isPlatformConnected ? (
                   <div className="text-gray-600">Loading…</div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <KPICard
-                      title="Total Engagers Analyzed"
-                      value={kpiCards.totalEngagers.value}
-                      change={kpiChanges.totalEngagers}
-                      icon={Users}
-                      sparklineData={kpiCards.totalEngagers.spark}
-                    />
-                    <KPICard
-                      title="High-Intent Users"
-                      value={kpiCards.highIntentPct.value}
-                      change={kpiChanges.highIntentPct}
-                      icon={Target}
-                      sparklineData={kpiCards.highIntentPct.spark}
-                    />
-                    <KPICard
-                      title="Leads Generated"
-                      value={kpiCards.leads.value}
-                      change={kpiChanges.leads}
-                      icon={TrendingUp}
-                      sparklineData={kpiCards.leads.spark}
-                    />
-                    <KPICard
-                      title="DMs Sent"
-                      value={kpiCards.dms.value}
-                      change={kpiChanges.dms}
-                      icon={MessageSquare}
-                      sparklineData={kpiCards.dms.spark}
-                    />
-                    <KPICard
-                      title="Average Conversion Score"
-                      value={kpiCards.avgScore.value}
-                      change={kpiChanges.avgScore}
-                      icon={BarChart3}
-                      sparklineData={kpiCards.avgScore.spark}
-                    />
-                    <KPICard
-                      title="AI Confidence Score"
-                      value={kpiCards.confidence.value}
-                      change={kpiChanges.confidence}
-                      icon={Activity}
-                      sparklineData={kpiCards.confidence.spark}
-                    />
-                  </div>
+                  <>
+                    {/* Analyzing / Syncing State Overlay */}
+                    {isPlatformConnected && Number(kpiCards.totalEngagers.value) === 0 && !loadingAny && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm rounded-xl border border-dashed border-indigo-200 p-8 text-center animate-in fade-in duration-500">
+                        <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative">
+                          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                          <div className="absolute inset-0 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin"></div>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Analyzing your audience...</h3>
+                        <p className="text-gray-600 max-w-md mx-auto mb-6">
+                          We are currently syncing and analyzing your {platform === 'facebook' ? 'Facebook' : 'Instagram'} engagement.
+                          This usually takes 1-2 minutes for the first sync.
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-indigo-600 font-medium bg-indigo-50 px-4 py-2 rounded-full">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                          </span>
+                          Processing data in real-time
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <KPICard
+                        title="Total Engagers Analyzed"
+                        value={kpiCards.totalEngagers.value}
+                        change={kpiChanges.totalEngagers}
+                        icon={Users}
+                        sparklineData={kpiCards.totalEngagers.spark}
+                      />
+                      <KPICard
+                        title="High-Intent Users"
+                        value={kpiCards.highIntentPct.value}
+                        change={kpiChanges.highIntentPct}
+                        icon={Target}
+                        sparklineData={kpiCards.highIntentPct.spark}
+                      />
+                      <KPICard
+                        title="Leads Generated"
+                        value={kpiCards.leads.value}
+                        change={kpiChanges.leads}
+                        icon={TrendingUp}
+                        sparklineData={kpiCards.leads.spark}
+                      />
+                      <KPICard
+                        title="DMs Sent"
+                        value={kpiCards.dms.value}
+                        change={kpiChanges.dms}
+                        icon={MessageSquare}
+                        sparklineData={kpiCards.dms.spark}
+                      />
+                      <KPICard
+                        title="Average Conversion Score"
+                        value={kpiCards.avgScore.value}
+                        change={kpiChanges.avgScore}
+                        icon={BarChart3}
+                        sparklineData={kpiCards.avgScore.spark}
+                      />
+                      <KPICard
+                        title="AI Confidence Score"
+                        value={kpiCards.confidence.value}
+                        change={kpiChanges.confidence}
+                        icon={Activity}
+                        sparklineData={kpiCards.confidence.spark}
+                      />
+                    </div>
+                  </>
                 )}
               </div>
 
               {!isPlatformConnected && !(platform === 'facebook' ? facebookLoading : instagramLoading) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-gray-300 bg-white/80 backdrop-blur-sm">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-gray-300 bg-white/80 backdrop-blur-sm z-20">
                   <p className="text-gray-700 font-semibold mb-3">
                     {platform === 'facebook' ? 'Connect Facebook to unlock analytics' : 'Connect Instagram to unlock analytics'}
                   </p>
@@ -655,153 +681,153 @@ export function Dashboard({ onSignOut }: DashboardProps) {
             <div className="relative">
               <div className={`${!isPlatformConnected ? 'blur-sm pointer-events-none select-none' : ''}`}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div className="lg:col-span-2 bg-white rounded-xl border-2 border-gray-200 p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Engagement Quality Over Time</h3>
-                  <div className="w-full h-[300px] relative">
-                    {engagementQualityData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={engagementQualityData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
-                          <YAxis domain={[0, 100]} tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'white',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                            }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="score"
-                            stroke="#6366f1"
-                            strokeWidth={3}
-                            dot={{ fill: '#6366f1', r: 4 }}
-                            name="Avg AI Score"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400 blur-sm pointer-events-none">
+                  <div className="lg:col-span-2 bg-white rounded-xl border-2 border-gray-200 p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Engagement Quality Over Time</h3>
+                    <div className="w-full h-[300px] relative">
+                      {engagementQualityData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={[{ date: 'No Data', score: 0 }]}>
+                          <LineChart data={engagementQualityData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                             <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
                             <YAxis domain={[0, 100]} tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
-                            <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: 'white',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                              }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="score"
+                              stroke="#6366f1"
+                              strokeWidth={3}
+                              dot={{ fill: '#6366f1', r: 4 }}
+                              name="Avg AI Score"
+                            />
                           </LineChart>
                         </ResponsiveContainer>
-                      </div>
-                    )}
-                    {engagementQualityData.length === 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
-                        <p className="text-gray-500 font-semibold">No data available</p>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400 blur-sm pointer-events-none">
+                          <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={[{ date: 'No Data', score: 0 }]}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
+                              <YAxis domain={[0, 100]} tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
+                              <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                      {engagementQualityData.length === 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
+                          <p className="text-gray-500 font-semibold">No data available</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Intent Distribution</h3>
-                  <div className="w-full h-[300px] relative">
-                    {intentDistributionData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={intentDistributionData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis
-                            dataKey="name"
-                            tick={{ fill: '#6b7280', fontSize: 10 }}
-                            stroke="#d1d5db"
-                            angle={-15}
-                            textAnchor="end"
-                            height={60}
-                          />
-                          <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'white',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                            }}
-                          />
-                          <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                            {intentDistributionData.map((entry: any, index: number) => (
-                              <Cell key={`cell-${index}`} fill={entry.fill || '#6b7280'} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400 blur-sm pointer-events-none">
+                  <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Intent Distribution</h3>
+                    <div className="w-full h-[300px] relative">
+                      {intentDistributionData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={[{ name: 'No Data', value: 0 }]}>
+                          <BarChart data={intentDistributionData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 10 }} stroke="#d1d5db" />
+                            <XAxis
+                              dataKey="name"
+                              tick={{ fill: '#6b7280', fontSize: 10 }}
+                              stroke="#d1d5db"
+                              angle={-15}
+                              textAnchor="end"
+                              height={60}
+                            />
                             <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
-                            <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#6b7280" />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: 'white',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                              }}
+                            />
+                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                              {intentDistributionData.map((entry: any, index: number) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill || '#6b7280'} />
+                              ))}
+                            </Bar>
                           </BarChart>
                         </ResponsiveContainer>
-                      </div>
-                    )}
-                    {intentDistributionData.length === 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
-                        <p className="text-gray-500 font-semibold">No data available</p>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400 blur-sm pointer-events-none">
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={[{ name: 'No Data', value: 0 }]}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                              <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 10 }} stroke="#d1d5db" />
+                              <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} stroke="#d1d5db" />
+                              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#6b7280" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                      {intentDistributionData.length === 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
+                          <p className="text-gray-500 font-semibold">No data available</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Persona Breakdown</h3>
-                  <div className="w-full h-[250px] relative">
-                    {personaBreakdownData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie
-                            data={personaBreakdownData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, value }: any) => `${name} ${value}%`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {personaBreakdownData.map((entry: any, index: number) => (
-                              <Cell key={`cell-${index}`} fill={entry.fill || '#8884d8'} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400 blur-sm pointer-events-none">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Persona Breakdown</h3>
+                    <div className="w-full h-[250px] relative">
+                      {personaBreakdownData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={250}>
                           <PieChart>
                             <Pie
-                              data={[{ name: 'No Data', value: 100 }]}
+                              data={personaBreakdownData}
                               cx="50%"
                               cy="50%"
+                              labelLine={false}
+                              label={({ name, value }: any) => `${name} ${value}%`}
                               outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
-                            />
+                            >
+                              {personaBreakdownData.map((entry: any, index: number) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill || '#8884d8'} />
+                              ))}
+                            </Pie>
                             <Tooltip />
                           </PieChart>
                         </ResponsiveContainer>
-                      </div>
-                    )}
-                    {personaBreakdownData.length === 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
-                        <p className="text-gray-500 font-semibold">No data available</p>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400 blur-sm pointer-events-none">
+                          <ResponsiveContainer width="100%" height={250}>
+                            <PieChart>
+                              <Pie
+                                data={[{ name: 'No Data', value: 100 }]}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                              />
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                      {personaBreakdownData.length === 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
+                          <p className="text-gray-500 font-semibold">No data available</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
 
               {!isPlatformConnected && !(platform === 'facebook' ? facebookLoading : instagramLoading) && (
@@ -819,40 +845,40 @@ export function Dashboard({ onSignOut }: DashboardProps) {
               )}
             </div>
 
-              <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">How Wallinst Works</h3>
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      1
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Analyze Engagers</h4>
-                      <p className="text-sm text-gray-700">Instagram commenters are synced and scored by AI</p>
-                    </div>
+            <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">How Wallinst Works</h3>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    1
                   </div>
-
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      2
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Review High-Quality Leads</h4>
-                      <p className="text-sm text-gray-700">Filter by intent label, persona, and activity</p>
-                    </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-1">Analyze Engagers</h4>
+                    <p className="text-sm text-gray-700">Instagram commenters are synced and scored by AI</p>
                   </div>
+                </div>
 
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Take Action</h4>
-                      <p className="text-sm text-gray-700">Reply, qualify, and convert faster</p>
-                    </div>
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-1">Review High-Quality Leads</h4>
+                    <p className="text-sm text-gray-700">Filter by intent label, persona, and activity</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-1">Take Action</h4>
+                    <p className="text-sm text-gray-700">Reply, qualify, and convert faster</p>
                   </div>
                 </div>
               </div>
+            </div>
           </div>
 
           <div>
