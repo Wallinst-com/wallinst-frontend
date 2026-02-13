@@ -15,12 +15,15 @@ export interface Engager {
 interface EngagersTableProps {
   engagers: Engager[];
   onSelectUser: (engager: Engager) => void;
+  isLoading?: boolean;
 }
 
 type SortField = 'username' | 'score' | 'intent' | 'persona' | 'engagementQuality' | 'activityLevel';
 type SortDirection = 'asc' | 'desc';
 
-export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
+// ... existing code ...
+
+export function EngagersTable({ engagers, onSelectUser, isLoading = false }: EngagersTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -63,14 +66,16 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
     })
     .sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortField) {
         case 'username':
           comparison = a.username.localeCompare(b.username);
           break;
         case 'score':
+          comparison = a.score - b.score;
+          break;
         case 'engagementQuality':
-          comparison = a[sortField] - b[sortField];
+          comparison = a.engagementQuality - b.engagementQuality;
           break;
         case 'intent':
           comparison = intentOrder[a.intent] - intentOrder[b.intent];
@@ -82,7 +87,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
           comparison = a.persona.localeCompare(b.persona);
           break;
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
@@ -110,8 +115,8 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ChevronUp size={14} className="text-gray-400" />;
-    return sortDirection === 'asc' ? 
-      <ChevronUp size={14} className="text-indigo-600" /> : 
+    return sortDirection === 'asc' ?
+      <ChevronUp size={14} className="text-indigo-600" /> :
       <ChevronDown size={14} className="text-indigo-600" />;
   };
 
@@ -135,11 +140,10 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
         <div className="flex gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-              showFilters 
-                ? 'bg-indigo-600 text-white' 
-                : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-indigo-400'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${showFilters
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-indigo-400'
+              }`}
           >
             <Filter size={16} />
             Filter
@@ -190,7 +194,11 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
 
       {/* Results Count */}
       <p className="text-sm text-gray-600 font-medium">
-        Showing {filteredAndSortedEngagers.length} of {engagers.length} engagers
+        {isLoading ? (
+          <span className="inline-block w-32 h-4 bg-gray-100 rounded animate-pulse" />
+        ) : (
+          `Showing ${filteredAndSortedEngagers.length} of ${engagers.length} engagers`
+        )}
       </p>
 
       {/* Table */}
@@ -199,7 +207,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b-2 border-gray-200">
               <tr>
-                <th 
+                <th
                   className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('username')}
                 >
@@ -208,7 +216,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
                     <SortIcon field="username" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('score')}
                 >
@@ -217,7 +225,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
                     <SortIcon field="score" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('intent')}
                 >
@@ -226,7 +234,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
                     <SortIcon field="intent" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('persona')}
                 >
@@ -235,7 +243,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
                     <SortIcon field="persona" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('engagementQuality')}
                 >
@@ -244,7 +252,7 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
                     <SortIcon field="engagementQuality" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left py-4 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('activityLevel')}
                 >
@@ -262,74 +270,94 @@ export function EngagersTable({ engagers, onSelectUser }: EngagersTableProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedEngagers.map((engager) => (
-                <tr 
-                  key={engager.id} 
-                  className="border-b border-gray-100 hover:bg-indigo-50 transition-colors cursor-pointer"
-                  onClick={() => onSelectUser(engager)}
-                >
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {engager.username.substring(1, 3).toUpperCase()}
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={idx} className="border-b border-gray-100">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
+                        <div className="w-24 h-4 bg-gray-100 rounded animate-pulse" />
                       </div>
-                      <span className="font-semibold text-gray-900">{engager.username}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="text-lg font-bold text-gray-900">{engager.score}</span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getIntentColor(engager.intent)}`}>
-                      {engager.intent}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={personaPillClass}>
-                      {engager.persona}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-indigo-600 to-purple-600"
-                          style={{ width: `${engager.engagementQuality}%` }}
-                        ></div>
+                    </td>
+                    <td className="py-4 px-4"><div className="w-8 h-6 bg-gray-100 rounded animate-pulse" /></td>
+                    <td className="py-4 px-4"><div className="w-16 h-6 bg-gray-100 rounded-full animate-pulse" /></td>
+                    <td className="py-4 px-4"><div className="w-20 h-6 bg-gray-100 rounded-full animate-pulse" /></td>
+                    <td className="py-4 px-4"><div className="w-24 h-4 bg-gray-100 rounded animate-pulse" /></td>
+                    <td className="py-4 px-4"><div className="w-16 h-4 bg-gray-100 rounded animate-pulse" /></td>
+                    <td className="py-4 px-4"><div className="w-12 h-6 bg-gray-100 rounded animate-pulse" /></td>
+                    <td className="py-4 px-4"><div className="w-20 h-8 bg-gray-100 rounded animate-pulse" /></td>
+                  </tr>
+                ))
+              ) : (
+                filteredAndSortedEngagers.map((engager) => (
+                  <tr
+                    key={engager.id}
+                    className="border-b border-gray-100 hover:bg-indigo-50 transition-colors cursor-pointer"
+                    onClick={() => onSelectUser(engager)}
+                  >
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {engager.username.substring(1, 3).toUpperCase()}
+                        </div>
+                        <span className="font-semibold text-gray-900">{engager.username}</span>
                       </div>
-                      <span className="text-sm font-bold text-gray-900">{engager.engagementQuality}%</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="text-sm font-medium text-gray-700">{engager.activityLevel}</span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {engager.flags.length === 0 ? (
-                        <span className="text-xs text-gray-400">—</span>
-                      ) : (
-                        engager.flags.map((flag, idx) => (
-                          <span key={idx} className="px-2 py-1 rounded-md text-xs font-semibold bg-red-100 text-red-700 border border-red-300">
-                            {flag}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectUser(engager);
-                      }}
-                      className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors"
-                    >
-                      <Eye size={14} />
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="text-lg font-bold text-gray-900">{engager.score}</span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getIntentColor(engager.intent)}`}>
+                        {engager.intent}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={personaPillClass}>
+                        {engager.persona}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-indigo-600 to-purple-600"
+                            style={{ width: `${engager.engagementQuality}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-bold text-gray-900">{engager.engagementQuality}%</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="text-sm font-medium text-gray-700">{engager.activityLevel}</span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex flex-wrap gap-1">
+                        {engager.flags.length === 0 ? (
+                          <span className="text-xs text-gray-400">—</span>
+                        ) : (
+                          engager.flags.map((flag, idx) => (
+                            <span key={idx} className="px-2 py-1 rounded-md text-xs font-semibold bg-red-100 text-red-700 border border-red-300">
+                              {flag}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectUser(engager);
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors"
+                      >
+                        <Eye size={14} />
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

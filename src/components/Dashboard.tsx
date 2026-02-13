@@ -1,5 +1,5 @@
 // src/components/Dashboard.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
@@ -378,10 +378,14 @@ export function Dashboard({ onSignOut }: DashboardProps) {
 
   const handleInstagramDisconnect = async () => {
     await disconnectMutation.mutateAsync();
+    await refetchInstagramConnection();
+    toast.success('Instagram disconnected');
   };
 
   const handleFacebookDisconnect = async () => {
     await fbDisconnectMutation.mutateAsync();
+    await refetchFacebookConnection();
+    toast.success('Facebook disconnected');
   };
 
   const handleFacebookConnect = async () => {
@@ -618,6 +622,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                         change={kpiChanges.totalEngagers}
                         icon={Users}
                         sparklineData={kpiCards.totalEngagers.spark}
+                        isLoading={loadingAny}
                       />
                       <KPICard
                         title="High-Intent Users"
@@ -625,6 +630,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                         change={kpiChanges.highIntentPct}
                         icon={Target}
                         sparklineData={kpiCards.highIntentPct.spark}
+                        isLoading={loadingAny}
                       />
                       <KPICard
                         title="Leads Generated"
@@ -632,6 +638,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                         change={kpiChanges.leads}
                         icon={TrendingUp}
                         sparklineData={kpiCards.leads.spark}
+                        isLoading={loadingAny}
                       />
                       <KPICard
                         title="DMs Sent"
@@ -639,6 +646,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                         change={kpiChanges.dms}
                         icon={MessageSquare}
                         sparklineData={kpiCards.dms.spark}
+                        isLoading={loadingAny}
                       />
                       <KPICard
                         title="Average Conversion Score"
@@ -646,6 +654,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                         change={kpiChanges.avgScore}
                         icon={BarChart3}
                         sparklineData={kpiCards.avgScore.spark}
+                        isLoading={loadingAny}
                       />
                       <KPICard
                         title="AI Confidence Score"
@@ -653,6 +662,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                         change={kpiChanges.confidence}
                         icon={Activity}
                         sparklineData={kpiCards.confidence.spark}
+                        isLoading={loadingAny}
                       />
                     </div>
                   </>
@@ -684,7 +694,9 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                   <div className="lg:col-span-2 bg-white rounded-xl border-2 border-gray-200 p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Engagement Quality Over Time</h3>
                     <div className="w-full h-[300px] relative">
-                      {engagementQualityData.length > 0 ? (
+                      {loadingAny ? (
+                        <div className="w-full h-full bg-gray-50 rounded-lg animate-pulse" />
+                      ) : engagementQualityData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={engagementQualityData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -720,7 +732,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                           </ResponsiveContainer>
                         </div>
                       )}
-                      {engagementQualityData.length === 0 && (
+                      {!loadingAny && engagementQualityData.length === 0 && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
                           <p className="text-gray-500 font-semibold">No data available</p>
                         </div>
@@ -731,7 +743,9 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                   <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Intent Distribution</h3>
                     <div className="w-full h-[300px] relative">
-                      {intentDistributionData.length > 0 ? (
+                      {loadingAny ? (
+                        <div className="w-full h-full bg-gray-50 rounded-lg animate-pulse" />
+                      ) : intentDistributionData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                           <BarChart data={intentDistributionData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -771,7 +785,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                           </ResponsiveContainer>
                         </div>
                       )}
-                      {intentDistributionData.length === 0 && (
+                      {!loadingAny && intentDistributionData.length === 0 && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
                           <p className="text-gray-500 font-semibold">No data available</p>
                         </div>
@@ -783,7 +797,9 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                   <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Persona Breakdown</h3>
                     <div className="w-full h-[250px] relative">
-                      {personaBreakdownData.length > 0 ? (
+                      {loadingAny ? (
+                        <div className="w-full h-full bg-gray-50 rounded-lg animate-pulse" />
+                      ) : personaBreakdownData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={250}>
                           <PieChart>
                             <Pie
@@ -820,7 +836,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
                           </ResponsiveContainer>
                         </div>
                       )}
-                      {personaBreakdownData.length === 0 && (
+                      {!loadingAny && personaBreakdownData.length === 0 && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
                           <p className="text-gray-500 font-semibold">No data available</p>
                         </div>
@@ -889,7 +905,7 @@ export function Dashboard({ onSignOut }: DashboardProps) {
 
             <div className="relative">
               <div className={`${!isPlatformConnected ? 'blur-sm pointer-events-none select-none' : ''}`}>
-                <EngagersTable engagers={displayEngagers} onSelectUser={handleSelectUser} />
+                <EngagersTable engagers={displayEngagers} onSelectUser={handleSelectUser} isLoading={loadingAny} />
               </div>
               {!isPlatformConnected && !(platform === 'facebook' ? facebookLoading : instagramLoading) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-gray-300 bg-white/80 backdrop-blur-sm">

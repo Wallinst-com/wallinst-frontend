@@ -7,6 +7,7 @@ interface KPICardProps {
   change?: number | null; // allow optional/null
   icon: LucideIcon;
   sparklineData?: number[] | null; // allow optional/null
+  isLoading?: boolean;
 }
 
 function normalizeSparkline(input: KPICardProps['sparklineData']): number[] {
@@ -23,6 +24,7 @@ export function KPICard({
   change = null,
   icon: Icon,
   sparklineData,
+  isLoading = false,
 }: KPICardProps) {
   const hasChange = typeof change === 'number' && Number.isFinite(change);
   const isPositive = hasChange ? change >= 0 : true;
@@ -33,10 +35,24 @@ export function KPICard({
   const hasSparkline = data.length >= 2;
   const chartData = hasSparkline ? data.map((v, index) => ({ value: v, index })) : [];
 
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-10 h-10 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="w-16 h-6 bg-gray-100 rounded-full animate-pulse" />
+        </div>
+        <div className="w-24 h-4 bg-gray-100 rounded mb-2 animate-pulse" />
+        <div className="w-16 h-8 bg-gray-100 rounded mb-4 animate-pulse" />
+        <div className="h-12 w-full bg-gray-50 rounded animate-pulse" />
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:shadow-lg transition-all">
+    <div className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:shadow-lg transition-all group">
       <div className="flex items-start justify-between mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
           <Icon className="text-white" size={20} />
         </div>
 
@@ -57,7 +73,14 @@ export function KPICard({
         {hasSparkline ? (
           <ResponsiveContainer width="100%" height={48}>
             <LineChart data={chartData}>
-              <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#6366f1"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
